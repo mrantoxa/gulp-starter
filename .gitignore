@@ -183,9 +183,7 @@ $RECYCLE.BIN/
 # End of https://www.gitignore.io/api/node,linux,macos,windows,intellij+iml
 
 # Custom
-dist/
-/dist
-/**/dist
+
 test-report.xml
 
 
