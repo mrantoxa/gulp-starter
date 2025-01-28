@@ -14,11 +14,42 @@ import imagemin from "gulp-imagemin"; // Оптимизация изображе
 import pngquant from "imagemin-pngquant"; // Оптимизация PNG
 import webp from "gulp-webp"; // Конвертация в WebP
 import merge from "merge-stream"; // Объединение потоков
+import parseJson from "parse-json"; // JSON parsing
+import fs from "fs"; // File system module
+// import del from "del"; // Установите пакет del: npm install del
 
 // Определение путей
 const root_dir = "app"; // Исходная директория
 const out_dir = "dist"; // Директория сборки
 const browserSync = browser_sync.create(); // Создание экземпляра browserSync
+
+// Function to parse JSON file and log its content
+gulp.task("parse-json", (done) => {
+  const jsonFilePath = `${root_dir}/data/**/*.json`; // Указание пути к JSON-файлу
+  fs.readFile(jsonFilePath, "utf8", (err, data) => {
+    if (err) {
+      console.error("Error reading JSON file:", err.message);
+      done();
+      return;
+    }
+    try {
+      const parsedData = parseJson(data);
+      console.log("Parsed JSON Data:", parsedData);
+    } catch (error) {
+      console.error("Failed to parse JSON:", error.message);
+    }
+    done();
+  });
+});
+
+// Sample task to demonstrate JSON usage
+gulp.task(
+  "use-json",
+  gulp.series("parse-json", (done) => {
+    console.log("Using parsed JSON data for further processing...");
+    done();
+  })
+);
 
 // Настройка SASS
 const sass = gulp_sass(sass_node);
@@ -76,7 +107,7 @@ gulp.task("scripts", () => {
 });
 
 // Оптимизация изображений
-gulp.task("imagemin", () => {
+gulp.task("imagemin", (done) => {
   // Создаем поток для WebP
   const webpStream = gulp
     .src(`${root_dir}/images/*`)
@@ -105,19 +136,21 @@ gulp.task("imagemin", () => {
     )
     .pipe(debug({ title: "imagemin:original" }))
     .pipe(gulp.dest(`${out_dir}/images/`));
-
+  done();
   return merge(webpStream, originalStream); // Объединяем потоки
 });
 
 // Копирование шрифтов
-gulp.task("fonts", () =>
-  gulp.src(`${root_dir}/fonts/**/*`).pipe(gulp.dest(`${out_dir}/fonts/`))
-);
+gulp.task("fonts", (done) => {
+  gulp.src(`${root_dir}/fonts/**/*`).pipe(gulp.dest(`${out_dir}/fonts/`));
+  done();
+});
 
 // Копирование иконок
-gulp.task("icons", () =>
-  gulp.src(`${root_dir}/icons/**/*`).pipe(gulp.dest(`${out_dir}/icons/`))
-);
+gulp.task("icons", (done) => {
+  gulp.src(`${root_dir}/icons/**/*`).pipe(gulp.dest(`${out_dir}/icons/`));
+  done();
+});
 
 // Отслеживание изменений в Pug файлах
 gulp.task("pug-watch", gulp.series("pug"), (done) => {
@@ -131,8 +164,15 @@ gulp.task("sass-watch", gulp.series("sass"), (done) => {
   done();
 });
 
+gulp.task("copy-json", () => {
+  return gulp
+    .src(`${root_dir}/data/**/*.json`)
+    .pipe(debug({ title: "Copying JSON files:" })) // Логирование
+    .pipe(gulp.dest(`${out_dir}/data/`));
+});
+
 // Отслеживание изменений во всех файлах
-gulp.task("watch", () => {
+gulp.task("watch", (done) => {
   browserSync.init({
     server: { baseDir: out_dir }, // Указываем папку сервера
   });
@@ -142,13 +182,28 @@ gulp.task("watch", () => {
   gulp.watch(`${root_dir}/views/**/*.pug`, gulp.series("pug-watch"));
   gulp.watch(`${root_dir}/js/**/*.js`, gulp.series("scripts"));
   gulp.watch(`${root_dir}/images/`, gulp.series("imagemin"));
+  gulp.watch(`${root_dir}/icons/`, gulp.series("icons"));
   gulp.watch(`${root_dir}/fonts/**/*`, gulp.series("fonts"));
+  done();
 });
+
+// gulp.task("clean", () => {
+//   return del([`${out_dir}/**/*`]); // Очистка папки dist
+// });
 
 // Задача сборки проекта
 gulp.task(
   "build",
-  gulp.series("sass", "pug", "scripts", "imagemin", "fonts", "icons")
+  gulp.series(
+    "sass",
+    "pug",
+    "scripts",
+    "imagemin",
+    "fonts",
+    "icons",
+    "copy-json", // Копируем JSON
+    "use-json"
+  )
 );
 
 // Задача по умолчанию

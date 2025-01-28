@@ -30,5 +30,8 @@
     "jquery": "^3.7.1",
     "pngquant-bin": "^6.0.0",
     "sass": "^1.70.0"
+  },
+  "dependencies": {
+    "parse-json": "^8.1.0"
   }
 }

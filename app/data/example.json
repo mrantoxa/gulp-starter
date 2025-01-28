@@ -1,0 +1,22 @@
+{
+  "name": "Иван Иванов",
+  "age": 30,
+  "isEmployed": true,
+  "address": {
+    "street": "Ленина",
+    "city": "Москва",
+    "postalCode": "123456"
+  },
+  "phoneNumbers": [
+    {
+      "type": "домашний",
+      "number": "123-456-7890"
+    },
+    {
+      "type": "рабочий",
+      "number": "987-654-3210"
+    }
+  ],
+  "email": "ivan.ivanov@example.com",
+  "hobbies": ["чтение", "путешествия", "спорт"]
+}
